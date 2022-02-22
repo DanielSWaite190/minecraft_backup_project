@@ -37,12 +37,14 @@ def main(args):
         for line in file:
             match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
             if match:
-                players.update()
+                player = re.search(":\s.+\[/", line)
+                time_stamp = re.search("\d+:\d+:\d+", line)
+                players.update({player.group():time_stamp.group()})
                 
 
                 # os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
                 # print("dezz nuts!")
-
+    print(players)
 
 
 if __name__ == '__main__':
