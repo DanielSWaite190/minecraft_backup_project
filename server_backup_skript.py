@@ -9,7 +9,7 @@ running = True
 def create_parser():
     parser = argparse.ArgumentParser(description="Copies Minecragt world folder evry week, or when sufficent game time has been loged.")
     parser.add_argument("logg_file", help="Minecraft logg file of server to backup")
-    parser.add_argument("-w", "-word_folder", help="Minecraft wolrd folder to be backedup")
+    parser.add_argument("word_folder", help="Minecraft wolrd folder to be backedup")
     parser.add_argument("backup_location", help="Location of new ziped backup")
     return parser
 
@@ -33,17 +33,15 @@ def main(args):
 
     players = {}
 
-    print(parsed_args.logg_file)
-
     with open (parsed_args.logg_file, "r") as file:
         for line in file:
-            match = re.search("logged in", line)
-            # i+1
+            match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
             if match:
-                # players.update()
-                # os.mkdirs(f"{parser.backup_location}i_am_daniel")
-                os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
-                print("dezz nuts!")
+                players.update()
+                
+
+                # os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
+                # print("dezz nuts!")
 
 
 
