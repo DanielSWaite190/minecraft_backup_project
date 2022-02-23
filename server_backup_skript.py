@@ -36,26 +36,27 @@ def main(args):
 
 
     players_model = {}
-    player_time = 0
+    player_time = datetime.timedelta() 
     with open (parsed_args.logg_file, "r") as file:
         for line in file:
             match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
             if match:
-                p = re.search(":\s.+\[/", line) #Regex for username string
-                player = p.group() #Saving username string as player
-                player = player.replace(":","").replace("[/","")[1:] #Removing extra characters and one space
-                players_model.update({player:datetime.datetime.now()})
+                in_p = re.search(":\s.+\[/", line) #Regex for username string
+                in_player = in_p.group() #Saving username string as player
+                in_player = in_player.replace(":","").replace("[/","")[1:] #Removing extra characters and one space
+                players_model.update({in_player:datetime.datetime.now()})
 
 
             match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
             if match:
-                l = re.search(":\s.+left", line) #Regex for username string
-                lef = l.group().replace("left", "")[2:]
-                print(lef)
-
-    print(player)
-    print(lef)
-    print(players_model)
+                o = re.search(":\s.+left", line) #Regex for username string
+                out_player = o.group().replace("left", "")[2:][:-1]
+                if out_player in players_model:
+                    player_time + datetime.datetime.now()-players_model[out_player]
+                    # print(datetime.datetime.now()-players_model[out_player])
+                else:
+                    #logg this as an erro something
+                    print("It looks like someone has left the game without logging in before hand.")
 
 if __name__ == '__main__':
     main(sys.argv[1:])
