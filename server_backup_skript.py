@@ -7,6 +7,7 @@ import re
 
 
 running = True
+armed = False
 
 def create_parser():
     parser = argparse.ArgumentParser(description="Copies Minecragt world folder evry week, or when sufficent game time has been loged.")
@@ -33,22 +34,31 @@ def main(args):
         # sys.exit(1)
     parsed_args = parser.parse_args(args)
 
-    players_model = {}
 
+    players_model = {}
+    player_time = 0
     with open (parsed_args.logg_file, "r") as file:
         for line in file:
             match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
             if match:
                 p = re.search(":\s.+\[/", line) #Regex for username string
                 player = p.group() #Saving username string as player
+                player = player.replace(":","").replace("[/","")[1:] #Removing extra characters and one space
                 players_model.update({player:datetime.datetime.now()})
-                # os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
 
 
-    x = players_model.get(": Undeflned[/'")
+            match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
+            if match:
+                l = re.search(":\s.+left", line) #Regex for username string
+                lef = l.group().replace("left", "")[2:]
+                print(lef)
 
-    # print(players_model.get(": Undeflned[/'"))
+    print(player)
+    print(lef)
     print(players_model)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+
+
+# os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
