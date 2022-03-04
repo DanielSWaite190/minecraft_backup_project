@@ -19,3 +19,7 @@ chmod command and permissions
 1. Signal_handler
 2. New starter script will simultaneously
    start a new Minecraft server and the backup script.
+
+
+Using tail -f in python:
+https://stackoverflow.com/questions/12523044/how-can-i-tail-a-log-file-in-python
