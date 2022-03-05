@@ -4,6 +4,9 @@ python dirwatcher_clone.py [folder to watch] [word to search for] ~optional~ [.f
 # How to stop dirwatcher.py
 Control + C
 
+# How to start server_backup_skript
+python server_backup_skript.py [logg_file] [word_folder] [backup_location]
+
 ###--------------------------------------------------------###
 
 
