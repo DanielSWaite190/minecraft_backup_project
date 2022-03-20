@@ -1,5 +1,4 @@
 import subprocess
-import subprocess
 import argparse
 from asyncio.log import logger
 import datetime
@@ -8,7 +7,6 @@ import signal
 import sys
 import os
 import re
-
 
 running = True
 armed = False
@@ -42,10 +40,10 @@ def main(args):
         # sys.exit(1)
     parsed_args = parser.parse_args(args)
 
-    test = 5
-
-    players_model = {}
-    player_time = datetime.timedelta() 
+    player_list = []
+    start_time = 0#datetime.datetime.now()
+    end_time = 0#datetime.datetime.now()
+    game_time = 0
     f = subprocess.Popen(['tail','-F',parsed_args.logg_file], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     while True:
         line = f.stdout.readline().decode()
@@ -56,8 +54,16 @@ def main(args):
             in_player = in_p.group() #Saving username string as player
             in_player = in_player.replace(":","").replace("[/","")[1:] #Removing extra characters and one space
             logger.debug(f"Player was: {in_player}")
-            players_model.update({in_player:datetime.datetime.now()})
-            logger.info(f"{in_player} logg in recorded.")
+
+            if in_player in player_list:
+                print("It looks like someone is trying to join the game, that is already in the game")
+            else:
+                player_list.append(in_player)
+                logger.info(f"{in_player} logg in recorded.")
+                if len(player_list) == 1:
+                    start_time = datetime.datetime.now()
+            print(player_list)
+            print()#space
 
         match = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
         if match:
@@ -65,20 +71,21 @@ def main(args):
             o = re.search(":\s.+left", line) #Regex for username string
             out_player = o.group().replace("left", "")[2:][:-1]
             logger.debug(f"Player was: {out_player}")
-            if out_player in players_model:
-                player_time + datetime.datetime.now()-players_model[out_player]
-                        # print(datetime.datetime.now()-players_model[out_player])
-                logger.info(f"{in_player} logg out recorded.")
-                logger.info(f"{in_player} play time: {player_time}") #Doesn't work unles runnign in real time.
-                print()#Block seperation
+            if out_player in player_list:
+                player_list.remove(out_player)
+                logger.info(f"{out_player} logg out recorded.")
+
+                if len(player_list) == 0:
+                    end_time = datetime.datetime.now()
+                    game_time = end_time - start_time
+                logger.info(f"{in_player} play time: {game_time}") #Doesn't work unles runnign in real time.
 
             else:
                 #logg this as an erro something
                 logger.error("It looks like someone has left the game without logging in before hand.")
-                print() #Block seperation
 
 if __name__ == '__main__':
     main(sys.argv[1:])
 
-
 # os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
+
