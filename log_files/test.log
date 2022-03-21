@@ -1,10 +1,10 @@
-[18:27:49] [Server thread/INFO]: Time elapsed: 12656 ms
-[18:27:50] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
-[18:27:50] [Server thread/INFO]: Done (75.753s)! For help, type "help"
-[18:28:18] [Server thread/INFO]: Unknown command. Type "/help" for help.[m
-[18:28:35] [Server thread/INFO]: [Server] test
-[18:29:25] [User Authenticator #1/INFO]: UUID of player Undeflned is 66c76ae1-4964-4964-9414-6a53aa60294d
+[18:29:25] [Server thread/INFO]: Undeflned[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
 [18:29:25] [Server thread/INFO]: Waitemonster[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
-[18:31:00] [Server thread/INFO]: Undeflned lost connection: Disconnected
+[18:29:25] [Server thread/INFO]: Sidney[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
+[18:29:25] [Server thread/INFO]: Olivia[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
+[18:29:25] [Server thread/INFO]: Caleb[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
 [18:31:00] [Server thread/INFO]: Waitemonster left the game
-[18:31:44] [Server thread/INFO]: Stopping the server
+[18:31:00] [Server thread/INFO]: Undeflned left the game
+[18:31:00] [Server thread/INFO]: Sidney left the game
+[18:31:00] [Server thread/INFO]: Caleb left the game
+[18:31:00] [Server thread/INFO]: Olivia left the game

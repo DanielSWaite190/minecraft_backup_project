@@ -53,11 +53,13 @@ def main(args):
 
         if log_in:
             new_player(line)
+            print(player_list)
             print()#space
+
         if log_out:
             player_leaving(line)
-            print()#space
             print(player_list)
+            print()#space
             
 def new_player(file_line):
     logging.debug("Identified a player intering the game")
@@ -89,8 +91,7 @@ def player_leaving(file_line):
                 if len(player_list) == 0:
                     end_time = datetime.datetime.now()
                     game_time = end_time - start_time
-                logging.info(f"Total play time: {game_time}")
-
+                    logging.info(f"Total play time: {game_time}")
             else:
                 logging.error("It looks like someone has left the game without logging in before hand.")
 
