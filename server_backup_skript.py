@@ -1,16 +1,16 @@
 import subprocess
 import argparse
-import logging
 import datetime
+import logging
 import logging
 import signal
 import sys
 import os
 import re
 
-running = True
-armed = False
-logg_level = logging.critical
+# running = True
+# armed = False
+# logg_level = logging.critical
 
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
     format="[Backup Server Program] [%(levelname)s]: %(message)s")
@@ -29,12 +29,7 @@ def signal_handler(sig_num, frame):
     running = False
     return None
 
-
 player_list = []
-# start_time = 0
-start_time = datetime.datetime.now()
-end_time = 0
-game_time = 0
 
 def main(args):
 # signal.signal(signal.SIGINT, signal_handler)
@@ -46,20 +41,32 @@ def main(args):
     parsed_args = parser.parse_args(args)
 
     f = subprocess.Popen(['tail','-F',parsed_args.logg_file], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    while True:
+    while True:     
+        # global start_time
+        # global end_time 
+        # global game_time #= datetime.datetime.now()
+
         line = f.stdout.readline().decode()
         log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
         log_out = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
 
+        #Building model form information in log file
         if log_in:
             new_player(line)
-            print(player_list)
-            print()#space
-
+            print(player_list, end='\n \n') #Make loger.debug
         if log_out:
             player_leaving(line)
-            print(player_list)
-            print()#space
+            print(player_list, end='\n \n') #Make loger.debug
+        
+        if len(player_list) == 1:
+            start_time = datetime.datetime.now()
+            # start_time == 1 #A cheat to get start_time to work on the above line. NEEDS TO BE RESOLVED
+        if len(player_list) == 0:
+            end_time = datetime.datetime.now()
+            game_time = end_time - start_time
+            logging.info(f"Total play time: {game_time.seconds/60}")
+            if game_time.seconds/60 >= -1:
+                countdown()
             
 def new_player(file_line):
     logging.debug("Identified a player intering the game")
@@ -74,26 +81,29 @@ def new_player(file_line):
         player_list.append(in_player)
         logging.info(f"{in_player} logg in recorded.")
     
-    if len(player_list) == 1:
-        start_time = datetime.datetime.now()
-        start_time == 1 #A cheat to get start_time to work on the above line. NEEDS TO BE RESOLVED
+    # if len(player_list) == 1:
+    #     start_time = datetime.datetime.now()
+    #     start_time == 1 #A cheat to get start_time to work on the above line. NEEDS TO BE RESOLVED
 
 
 def player_leaving(file_line):
-            logging.debug("Identified a player leaving the game")
-            o = re.search(":\s.+left", file_line) #Finding the exact player that is leaving
-            out_player = o.group().replace("left", "")[2:][:-1] #Converting player match--
-            logging.debug(f"Player was: {out_player}")#          --object as string & removing extra spaces
-            if out_player in player_list:
-                player_list.remove(out_player)
-                logging.info(f"{out_player} logg out recorded.")
+    logging.debug("Identified a player leaving the game")
+    o = re.search(":\s.+left", file_line) #Finding the exact player that is leaving
+    out_player = o.group().replace("left", "")[2:][:-1] #Converting player match--
+    logging.debug(f"Player was: {out_player}")#          --object as string & removing extra spaces
+    if out_player in player_list:
+        player_list.remove(out_player)
+        logging.info(f"{out_player} logg out recorded.")
+    else:
+        logging.error("It looks like someone has left the game without logging in before hand.")
 
-                if len(player_list) == 0:
-                    end_time = datetime.datetime.now()
-                    game_time = end_time - start_time
-                    logging.info(f"Total play time: {game_time}")
-            else:
-                logging.error("It looks like someone has left the game without logging in before hand.")
+    # if len(player_list) == 0:
+    #     end_time = datetime.datetime.now()
+    #     game_time = end_time - start_time
+    #     logging.info(f"Total play time: {game_time}")
+
+def countdown():
+    os.system("open .")
 
 
 if __name__ == '__main__':
