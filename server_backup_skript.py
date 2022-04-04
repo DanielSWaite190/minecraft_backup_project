@@ -7,9 +7,9 @@ import signal
 import sys
 import os
 import re
+from tracemalloc import start
 
-# running = True
-# armed = False
+backingUp = None
 # logg_level = logging.critical
 
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -29,11 +29,14 @@ def signal_handler(sig_num, frame):
     running = False
     return None
 
+# Global variabels that will be manipulated by various functions
+# Not sure how pythonic this is- am open to refactoring once
+#    I learn a better way
 player_list = []
-
+start_time = None
+end_time = None
 def main(args):
 # signal.signal(signal.SIGINT, signal_handler)
-
     parser = create_parser()
     if not args:
         parser.print_usage()
@@ -42,10 +45,6 @@ def main(args):
 
     f = subprocess.Popen(['tail','-F',parsed_args.logg_file], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     while True:     
-        # global start_time
-        # global end_time 
-        # global game_time #= datetime.datetime.now()
-
         line = f.stdout.readline().decode()
         log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
         log_out = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
@@ -58,16 +57,22 @@ def main(args):
             player_leaving(line)
             print(player_list, end='\n \n') #Make loger.debug
         
+        #Keep track of how long the server is active
         if len(player_list) == 1:
+            global start_time
             start_time = datetime.datetime.now()
-            # start_time == 1 #A cheat to get start_time to work on the above line. NEEDS TO BE RESOLVED
         if len(player_list) == 0:
+            global end_time
             end_time = datetime.datetime.now()
             game_time = end_time - start_time
             logging.info(f"Total play time: {game_time.seconds/60}")
-            if game_time.seconds/60 >= -1:
-                countdown()
-            
+            if game_time.seconds/60 >= 30:
+                global backingUp
+                backingUp = armBackupSystem()
+
+        if datetime.date.today() == backingUp:
+            countDown()
+
 def new_player(file_line):
     logging.debug("Identified a player intering the game")
     in_p = re.search(":\s.+\[/", file_line) #Regex for username string
@@ -80,11 +85,6 @@ def new_player(file_line):
     else:
         player_list.append(in_player)
         logging.info(f"{in_player} logg in recorded.")
-    
-    # if len(player_list) == 1:
-    #     start_time = datetime.datetime.now()
-    #     start_time == 1 #A cheat to get start_time to work on the above line. NEEDS TO BE RESOLVED
-
 
 def player_leaving(file_line):
     logging.debug("Identified a player leaving the game")
@@ -97,14 +97,35 @@ def player_leaving(file_line):
     else:
         logging.error("It looks like someone has left the game without logging in before hand.")
 
-    # if len(player_list) == 0:
-    #     end_time = datetime.datetime.now()
-    #     game_time = end_time - start_time
-    #     logging.info(f"Total play time: {game_time}")
+def sendSpigotCommand(command):
+    os.system(f'Screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
-def countdown():
-    os.system("open .")
 
+def countDown():
+    x = datetime.datetime.now()
+    # x = datetime.time(10,10,10)
+    thirty = [30,40,50,55,56,57,58,59]
+    if x.minute in thirty:
+        sendSpigotCommand(f'Server will reboot in {60 - x.minute} minutes')
+        thirty.remove(x.minute)
+    if x.minute == 00:
+        backUp()
+
+def armBackupSystem():
+    date = datetime.date.today()
+    week_num = date.isoweekday()
+    days_till_satueday = None
+
+    if 5 - week_num < 0:
+        days_till_satueday = 6
+    else:
+        days_till_satueday = 5 - week_num
+
+    tdelta = datetime.timedelta(days_till_satueday) 
+    return date + tdelta
+
+def backUp():
+    pass
 
 if __name__ == '__main__':
     main(sys.argv[1:])
