@@ -4,12 +4,14 @@ import datetime
 import logging
 import logging
 import signal
+import shutil 
+import time
 import sys
 import os
 import re
 from tracemalloc import start
 
-backingUp = None
+backUpDate = None
 # logg_level = logging.critical
 
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -18,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
 def create_parser():
     parser = argparse.ArgumentParser(description="Copies Minecragt world folder evry week, or when sufficent game time has been loged.")
     parser.add_argument("logg_file", help="Minecraft logg file of server to backup")
-    parser.add_argument("word_folder", help="Minecraft wolrd folder to be backedup")
+    parser.add_argument("game_folder", help="Minecraft wolrd folder to be backedup")
     parser.add_argument("backup_location", help="Location of new ziped backup")
     return parser
 
@@ -31,10 +33,10 @@ def signal_handler(sig_num, frame):
 
 # Global variabels that will be manipulated by various functions
 # Not sure how pythonic this is- am open to refactoring once
-#    I learn a better way
+#I learn a better way
 player_list = []
-start_time = None
-end_time = None
+start_time = datetime.datetime.today()
+end_time = datetime.datetime.today()
 def main(args):
 # signal.signal(signal.SIGINT, signal_handler)
     parser = create_parser()
@@ -48,6 +50,7 @@ def main(args):
         line = f.stdout.readline().decode()
         log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
         log_out = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
+        # versionNum = re.search("Starting minecraft server version \d+.\d+.\d+", line)
 
         #Building model form information in log file
         if log_in:
@@ -67,10 +70,10 @@ def main(args):
             game_time = end_time - start_time
             logging.info(f"Total play time: {game_time.seconds/60}")
             if game_time.seconds/60 >= 30:
-                global backingUp
-                backingUp = armBackupSystem()
+                global backUpDate
+                backUpDate = armBackupSystem()
 
-        if datetime.date.today() == backingUp:
+        if datetime.date.today() == backUpDate:
             countDown()
 
 def new_player(file_line):
@@ -100,15 +103,13 @@ def player_leaving(file_line):
 def sendSpigotCommand(command):
     os.system(f'Screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
-
 def countDown():
-    x = datetime.datetime.now()
-    # x = datetime.time(10,10,10)
-    thirty = [30,40,50,55,56,57,58,59]
-    if x.minute in thirty:
-        sendSpigotCommand(f'Server will reboot in {60 - x.minute} minutes')
-        thirty.remove(x.minute)
-    if x.minute == 00:
+    current_time = datetime.datetime.now()
+    thirty = [30,40,50,55,56,57,58]
+    if current_time.minute in thirty:
+        sendSpigotCommand(f'say Server will reboot in {60 - current_time.minute} minutes')
+        thirty.remove(current_time.minute)
+    if current_time.minute == 59:
         backUp()
 
 def armBackupSystem():
@@ -125,9 +126,24 @@ def armBackupSystem():
     return date + tdelta
 
 def backUp():
-    pass
+    global parsed_args
+    sendSpigotCommand(f'say Server will reboot in 60 seconds!')
+    time.sleep(60)
+    sendSpigotCommand('stop')
+    time.sleep(5)
+    
+    today = datetime.datetime.now()
+    new_folder = today.strftime("%m-%d-%Y")
+
+    os.chdir(parsed_args.game_folder)
+    backup_location = os.path.join(parsed_args.backup_location, new_folder)
+    os.mkdir(backup_location) #date and version
+
+    subprocess.call(f"cp -R world {os.path.join(backup_location, 'worldB')}", shell=True)
+    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, 'world_netherB')}", shell=True)
+    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
+
+    sendSpigotCommand('java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui') # <---  This might not work ?
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-
-# os.makedirs(os.path.join(parsed_args.backup_location, f"i_am_daniel"))
