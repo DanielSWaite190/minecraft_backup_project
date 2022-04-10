@@ -4,12 +4,10 @@ import datetime
 import logging
 import logging
 import signal
-import shutil 
 import time
 import sys
 import os
 import re
-from tracemalloc import start
 
 backUpDate = None
 # logg_level = logging.critical
@@ -18,7 +16,8 @@ logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
     format="[Backup Server Program] [%(levelname)s]: %(message)s")
 
 def create_parser():
-    parser = argparse.ArgumentParser(description="Copies Minecragt world folder evry week, or when sufficent game time has been loged.")
+    parser = argparse.ArgumentParser(description="Copies Minecragt world folder" + 
+        "evry week, or when sufficent game time has been loged.")
     parser.add_argument("logg_file", help="Minecraft logg file of server to backup")
     parser.add_argument("game_folder", help="Minecraft wolrd folder to be backedup")
     parser.add_argument("backup_location", help="Location of new ziped backup")
@@ -37,6 +36,7 @@ def signal_handler(sig_num, frame):
 player_list = []
 start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
+game_time = 0
 def main(args):
 # signal.signal(signal.SIGINT, signal_handler)
     parser = create_parser()
@@ -45,8 +45,9 @@ def main(args):
         # sys.exit(1)
     parsed_args = parser.parse_args(args)
 
-    f = subprocess.Popen(['tail','-F',parsed_args.logg_file], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    while True:     
+    f = subprocess.Popen(['tail', '-1', '-F', parsed_args.logg_file],\
+         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    while True:
         line = f.stdout.readline().decode()
         log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
         log_out = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
@@ -56,25 +57,29 @@ def main(args):
         if log_in:
             new_player(line)
             print(player_list, end='\n \n') #Make loger.debug
+
+            if len(player_list) == 1:
+                global start_time
+                start_time = datetime.datetime.now()
+
         if log_out:
             player_leaving(line)
             print(player_list, end='\n \n') #Make loger.debug
-        
-        #Keep track of how long the server is active
-        if len(player_list) == 1:
-            global start_time
-            start_time = datetime.datetime.now()
-        if len(player_list) == 0:
-            global end_time
-            end_time = datetime.datetime.now()
-            game_time = end_time - start_time
-            logging.info(f"Total play time: {game_time.seconds/60}")
-            if game_time.seconds/60 >= 30:
-                global backUpDate
-                backUpDate = armBackupSystem()
 
+            if len(player_list) == 0:
+                global end_time
+                global game_time
+                end_time = datetime.datetime.now()
+                game_time_delta = end_time - start_time #game time delta
+                game_time += round(game_time_delta.seconds)    #Truns game time delta into int
+                logging.info(f"Total play time: {round(game_time/60)}")
+                if game_time/60 >= 30:
+                    global backUpDate
+                    backUpDate = armBackupSystem() # <--- Change to 'Next BackUp Date'
+                    logging.info('Backup armed')
+            
         if datetime.date.today() == backUpDate:
-            countDown()
+            countDown(parsed_args)
 
 def new_player(file_line):
     logging.debug("Identified a player intering the game")
@@ -103,14 +108,14 @@ def player_leaving(file_line):
 def sendSpigotCommand(command):
     os.system(f'Screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
-def countDown():
+def countDown(parsed_args):
     current_time = datetime.datetime.now()
     thirty = [30,40,50,55,56,57,58]
     if current_time.minute in thirty:
         sendSpigotCommand(f'say Server will reboot in {60 - current_time.minute} minutes')
         thirty.remove(current_time.minute)
     if current_time.minute == 59:
-        backUp()
+        backUp(parsed_args)
 
 def armBackupSystem():
     date = datetime.date.today()
@@ -125,8 +130,7 @@ def armBackupSystem():
     tdelta = datetime.timedelta(days_till_satueday) 
     return date + tdelta
 
-def backUp():
-    global parsed_args
+def backUp(parsed_args):
     sendSpigotCommand(f'say Server will reboot in 60 seconds!')
     time.sleep(60)
     sendSpigotCommand('stop')
@@ -142,8 +146,8 @@ def backUp():
     subprocess.call(f"cp -R world {os.path.join(backup_location, 'worldB')}", shell=True)
     subprocess.call(f"cp -R world_nether {os.path.join(backup_location, 'world_netherB')}", shell=True)
     subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
-
-    sendSpigotCommand('java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui') # <---  This might not work ?
+    #Rebot server
+    sendSpigotCommand('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
