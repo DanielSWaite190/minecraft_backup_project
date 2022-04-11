@@ -9,7 +9,6 @@ import sys
 import os
 import re
 
-backUpDate = None
 # logg_level = logging.critical
 
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -33,10 +32,12 @@ def signal_handler(sig_num, frame):
 # Global variabels that will be manipulated by various functions
 # Not sure how "pythonic" this is. Am open to refactoring once
 #I learn a better way
-player_list = []
 start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
+backUpDate = None
+player_list = []
 game_time = 0
+v_number = 0
 
 def main(args):
 # signal.signal(signal.SIGINT, signal_handler)
@@ -47,10 +48,14 @@ def main(args):
     parsed_args = parser.parse_args(args)
 
     logfile=open(parsed_args.logg_file, 'r')
+
+    # v_number = initiate(logfile)
+    initiate(logfile)
+
     while True:
         line = '' #Clear variable for next line
         logline=logfile.readline()
-        time.sleep(1) #Slows down refresh for performance reasons.
+        time.sleep(0.125) #Slows down refresh for performance reasons.
         if logline:
             line = logline
 
@@ -85,6 +90,27 @@ def main(args):
             
         if datetime.date.today() == backUpDate:
             countDown(parsed_args)
+
+def initiate(logfile):
+    print("---  Starting Mineraft backup program...  ---")
+    # logging.debug('Starting Mineraft backup program...')
+    while True:
+        line = '' #Clear variable for next line
+        logline=logfile.readline()
+        time.sleep(0.125) #Slows down refresh for performance reasons.
+        if logline:
+            line = logline
+        
+        version = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\sStarting minecraft server version\s\d+.\d+.\d+", line)
+        if version:
+            num = re.search('version\s\d+.\d+.\d+', line)
+            print("---  Identified Minecraft logging sesion.  ---")
+            print(f'---  This game is running {num.group()}  ---')
+            # logging.debug('Identified Minecraft logging sesion.')
+            # logging.debug(f'This game is running {num.group()}---')
+            [print('') for i in range(2)] #Print a few extra spaces 
+            return num.group()
+            # TODO If you can't find version number in under 5 second, exit
 
 def new_player(file_line):
     logging.debug("Identified a player intering the game")
