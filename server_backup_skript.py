@@ -31,12 +31,13 @@ def signal_handler(sig_num, frame):
     return None
 
 # Global variabels that will be manipulated by various functions
-# Not sure how pythonic this is- am open to refactoring once
+# Not sure how "pythonic" this is. Am open to refactoring once
 #I learn a better way
 player_list = []
 start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
 game_time = 0
+
 def main(args):
 # signal.signal(signal.SIGINT, signal_handler)
     parser = create_parser()
@@ -45,10 +46,14 @@ def main(args):
         # sys.exit(1)
     parsed_args = parser.parse_args(args)
 
-    f = subprocess.Popen(['tail', '-1', '-F', parsed_args.logg_file],\
-         stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    logfile=open(parsed_args.logg_file, 'r')
     while True:
-        line = f.stdout.readline().decode()
+        line = '' #Clear variable for next line
+        logline=logfile.readline()
+        time.sleep(1) #Slows down refresh for performance reasons.
+        if logline:
+            line = logline
+
         log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
         log_out = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
         # versionNum = re.search("Starting minecraft server version \d+.\d+.\d+", line)
@@ -72,7 +77,7 @@ def main(args):
                 end_time = datetime.datetime.now()
                 game_time_delta = end_time - start_time #game time delta
                 game_time += round(game_time_delta.seconds)    #Truns game time delta into int
-                logging.info(f"Total play time: {round(game_time/60)}")
+                logging.info(f"Total play time {round(game_time/60)} minutes.")
                 if game_time/60 >= 30:
                     global backUpDate
                     backUpDate = armBackupSystem() # <--- Change to 'Next BackUp Date'
