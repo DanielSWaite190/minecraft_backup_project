@@ -34,6 +34,7 @@ def signal_handler(sig_num, frame):
 #I learn a better way
 start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
+thirty = [30,40,50,55,56,57,58]
 backUpDate = None
 player_list = []
 game_time = 0
@@ -50,7 +51,7 @@ def main(args):
     logfile=open(parsed_args.logg_file, 'r')
 
     # v_number = initiate(logfile)
-    initiate(logfile)
+    # initiate(logfile)
 
     while True:
         line = '' #Clear variable for next line
@@ -140,8 +141,8 @@ def sendSpigotCommand(command):
     os.system(f'Screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
 def countDown(parsed_args):
+    global thirty
     current_time = datetime.datetime.now()
-    thirty = [30,40,50,55,56,57,58]
     if current_time.minute in thirty:
         sendSpigotCommand(f'say Server will reboot in {60 - current_time.minute} minutes')
         thirty.remove(current_time.minute)
@@ -168,7 +169,7 @@ def backUp(parsed_args):
     time.sleep(5)
     
     today = datetime.datetime.now()
-    new_folder = today.strftime("%m-%d-%Y")
+    new_folder = today.strftime("%m-%d-%Y") #add version number
 
     os.chdir(parsed_args.game_folder)
     backup_location = os.path.join(parsed_args.backup_location, new_folder)
