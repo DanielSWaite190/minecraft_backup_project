@@ -59,7 +59,7 @@ def main(args):
         if logline:
             line = logline
 
-        log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[/\d+.\d+.\d+.\d:\d+\]\slogged in", line)
+        log_in = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+\[\/\d+\.\d+\.\d+\.\d+:\d+\]\slogged\sin", line)
         log_out = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\s.+left\sthe\sgame", line)
         # versionNum = re.search("Starting minecraft server version \d+.\d+.\d+", line)
 
