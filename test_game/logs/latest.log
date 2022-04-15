@@ -3,7 +3,10 @@
 [18:32:35] [Server thread/INFO]: Starting minecraft server version 1.18.2
 [18:32:35] [Server thread/INFO]: Loading properties
 [18:32:35] [Server thread/INFO]: This server is running CraftBukkit version 3470-Spigot-ffceeae-1092219 (MC: 1.18.2) (Implementing API version 1.18.2-R0.1-SNAPSHOT)
-
+[19:22:32] [Worker-Main-14/INFO]: Preparing spawn area: 70%
+[19:22:32] [Server thread/INFO]: Time elapsed: 6046 ms
+[19:22:32] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
+[19:22:32] [Server thread/INFO]: Done (33.129s)! For help, type "help"
 
 [18:29:25] [Server thread/INFO]: Undeflned[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
 [18:29:25] [Server thread/INFO]: Waitemonster[/127.0.0.1:62574] logged in with entity id 184 at ([world]3.699999988079071, 97.0, 14.320555904409504)
