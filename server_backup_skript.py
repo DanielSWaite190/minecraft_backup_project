@@ -7,7 +7,7 @@ Receive a warning followed by a ten minute interval countdown. When this countdo
 the files will be copied to the specified destination and the server will start backup.
 (C) 2022 Daniel S. Waite
 """
-VERSION_NUMBER = 1
+VERSION_NUMBER = '1.1.1'
 
 import subprocess
 import argparse
@@ -26,7 +26,8 @@ I learn a better way
 """
 start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
-thirty = [30,40,50,55,56,57,58]
+thirty = True
+forty = [40,50,55,56,57,58]
 backUpDate = None
 player_list = []
 game_time = 0
@@ -68,6 +69,7 @@ def main(args):
     v_number = initiate(logfile) #COMMENT: initiate() returns game version number.
 
     while running:
+        global backUpDate
         line = '' #COMMENT: Clear variable for next line
         logline=logfile.readline()
         time.sleep(0.125) #COMMENT: Slows down refresh for performance reasons.
@@ -101,20 +103,23 @@ def main(args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Truns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.")
-                if game_time/60 >= 60:
-                    global backUpDate
+                if backUpDate == None and game_time/60 >= 60:
                     backUpDate = armBackupSystem() # <--- Change to 'Next BackUp Date'
                     logging.info('Backup armed!')
-                    logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technicaly it commences
+                    logging.info(f'Backup will commence at {backUpDate} at 12:59.') #COMMENT: Technicaly it commences
                                                                             # on the next day at 00:00 but whatever.
         #COMMENT: On schedueled date at 11pm start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
-           datetime.datetime.now().time().hour <= 23:
+           datetime.datetime.now().time().hour == 23:
             countDown(parsed_args)
+            # logfile=open(p_logg_file, 'r')
+            # print('file opend')
+            # Idea: Run an 'open' function at the end of backUp()
 
     if not running:
-        logfile.close() 
+        logfile.close()
 
+    
 def initiate(logfile):
     """Pre while loop that confirms legitimate Minecraft log file."""
     print()
@@ -136,7 +141,7 @@ def initiate(logfile):
             num = re.search('version\s\d+.\d+.\d+', line)
             # logging.debug('Identified Minecraft logging sesion.')
             # logging.debug(f'This game is running {num.group()}---')
-            [print('') for i in range(2)] #Print a few extra spaces 
+            [print('') for _ in range(2)] #Print a few extra spaces 
             print('Waiting on server on server...')
         
         #COMMENT: Return to main function once server is done loading.
@@ -185,38 +190,37 @@ def sendToSpigotScreen(command):
 def countDown(parsed_args):
     """Wars players in game that server will be restarting soon."""
     global thirty
+    global forty
     current_time = datetime.datetime.now()
 
     #COMMENT: Print inishal reboot warning. Only at the 30 minet mark.
-    if current_time.minute == 30:
-        sendToSpigotScreen('say Server will undergo regularly sedueld maitnace in 30 Minetes.')
-        sendToSpigotScreen('say It will only be down for a few seconds.')
-        sendToSpigotScreen('say You can keep playing normaly, we will provide a countdow.')
-        thirty.remove(current_time.minute)
+    if current_time.minute == 30 and thirty:
+        thirty = False
+        sendToSpigotScreen('say Server will undergo regularly sedueld maitnace in 30 minetes. It will only be down for a few seconds. You can keep playing normaly, we will provide a countdow.')
 
     #COMMENT: Continues to remind until the 60 second mark.
-    if current_time.minute in thirty:
+    if current_time.minute in forty:
+        forty.remove(current_time.minute)
         sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes')
-        thirty.remove(current_time.minute)
     if current_time.minute == 59:
         backUp(parsed_args)
         #COMMENT: Backup at 60 second mark.
-
+    
 def armBackupSystem():
     """Caculate the date of following Saturday."""
     date = datetime.date.today()
     week_num = date.isoweekday()
-    days_till_satueday = None
+    days_till_saturday = None
 
     #COMMENT: Caculate time delta of number of days until next Saturday.
     if 6 - week_num < 0:
         #COMMENT: If week day is already Saturday or Sunday
-        days_till_satueday = 7
+        days_till_saturday = 7
     else:
         #COMMENT: How many days from today is day number 6.
-        days_till_satueday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
+        days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
 
-    tdelta = datetime.timedelta(days_till_satueday) 
+    tdelta = datetime.timedelta(days_till_saturday) 
     return date + tdelta
     #COMMENT: Today + days_till_satueday
 
@@ -225,13 +229,18 @@ def backUp(parsed_args):
     time.sleep(60)
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
     time.sleep(5)
+
+    # global logfile
+    # logfile.close()
+    # print('file closed')
+
     
     global v_number
     today = datetime.datetime.now()
     new_folder = today.strftime("%m-%d-%Y") + f'_{v_number.group()[8:]}'
     #COMMENT: Backup folder name = todays date + game version number.
 
-    os.chdir(parsed_args.game_folder)
+    # os.chdir(parsed_args.game_folder)
     backup_location = os.path.join(parsed_args.backup_location, new_folder) #COMMENT: Build
     os.mkdir(backup_location)                                     # backup location string
 
@@ -247,6 +256,7 @@ def backUp(parsed_args):
     global start_time
     global end_time
     global thirty
+    global forty
     global backUpDate
     global player_list
     global game_time
@@ -255,12 +265,15 @@ def backUp(parsed_args):
 
     start_time = datetime.datetime.today()
     end_time = datetime.datetime.today()
-    thirty = [30,40,50,55,56,57,58]
+    thirty = True
+    forty = [40,50,55,56,57,58]
     backUpDate = None
     player_list = []
     game_time = 0
     v_number = 0
-    sendToSpigotScreen('java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+    
+    # sendToSpigotScreen('java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+    os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
