@@ -31,14 +31,16 @@ forty = [40,50,55,56,57,58]
 backUpDate = None
 player_list = []
 game_time = 0
-v_number = ''
+#v_number
 running = True
+
 
 # logg_level = logging.critical
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
     format="[Backup Server Program] [%(levelname)s]: %(message)s")
 
 def create_parser():
+    """Creates parser var with data passed into terminal."""
     parser = argparse.ArgumentParser(description="Copies Minecragt world folder" + 
         "evry week, if sufficent game time has been loged.")
     parser.add_argument("game_folder", help="Minecraft root game folder")
@@ -47,11 +49,13 @@ def create_parser():
 
 def signal_handler(sig_num, frame):
     """Catches quit signals"""
+    global running
+    running = False
+    logfile.close()
     print()
     print("Closed")
     print()
-    global running
-    running = False
+    
 
 def main(args):
     """Main function holding the master while loop."""
@@ -61,29 +65,34 @@ def main(args):
         parser.print_usage()
         sys.exit(1)
     parsed_args = parser.parse_args(args)
-    p_logg_file = os.path.join(parsed_args.game_folder, 'logs/latest.log')
+    p_logg_file = os.path.abspath(os.path.join(parsed_args.game_folder, 'logs/latest.log'))
     # COMMENT: Pulling logs/latest out of game folder for easy indexing.
 
-
-    # ------- Start ---------
     print()
     print(f"---   Mineraft Backup   ---")
     print(f'---   Version {VERSION_NUMBER}')
-    # global running
+    global logfile
     global v_number
 
     while running:
-        reset_vars()                #COMMENT: Reset all global varibales
-        logfile=open(p_logg_file, 'r')         #COMMENT: Open MC log file
-        v_number = initiate(logfile)    #COMMENT: Finds game version numbe
-        read(logfile, parsed_args)       #Comment: Main loop that writes to player list
-
-    if not running:
+        logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
+        v_number = initiate()            #COMMENT: Finds game version numbe
+        read(parsed_args)   #Comment: Main loop that writes to player list
+        reset_vars()                            #COMMENT: Reset all global varibales
         logfile.close()
+        os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+        os.chdir(os.path.dirname(__file__))     #COMMENT: Reset directory after new MC server 
 
-def initiate(logfile):
+        if not running:
+            logfile.close()
+            break
+        #COMMENT: Checking for exit signal before sleeping
+        time.sleep(30)
+
+def initiate():
     """Pre while loop that confirms legitimate Minecraft log file."""
     while running:
+        # num = None
         line = '' #COMMENT: Clear variable for next line
         #COMMENT: Reads the lates line from the file and saves it to var line.
         logline=logfile.readline()
@@ -92,7 +101,7 @@ def initiate(logfile):
             line = logline
         
         #COMMENT: Each Minecraft log file starts with a version number. This checks for that 
-                # verifing a true MC log file.
+        #         verifing a true MC log file.
         game_version = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\sStarting minecraft server version\s\d+.\d+.\d+", line)
         if game_version:
             num = re.search('version\s\d+.\d+.\d+', line)
@@ -104,13 +113,11 @@ def initiate(logfile):
         if done:
             print("Server is all done.")
             print("Enjoy your game. Don't worry, we've got your back- up!", end='\n')
+            sendToSpigotScreen('say Backup program initiated')
             print()
             return num
 
-    if not running:
-        logfile.close()
-
-def read(logfile, parsed_args):
+def read(parsed_args):
     """Main while loop that keeps track of players in the game"""
     while running:
         global backUpDate
@@ -155,13 +162,9 @@ def read(logfile, parsed_args):
         #COMMENT: On schedueled date at 11pm start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
            datetime.datetime.now().time().hour == 23:
-            countDown(parsed_args)
-
-    if not running:
-        logfile.close()
-
-    if countDown == 0:
-        return
+            rreturn = countDown(parsed_args)
+            if rreturn == 0:
+                return
 
 def new_player(file_line):
     logging.debug("Identified a player intering the game")
@@ -213,8 +216,8 @@ def countDown(parsed_args):
     if current_time.minute == 59:
         backUp(parsed_args)
         return 0
-        #COMMENT: Backup at 60 second mark,
-        #   Then hand control back to backUp() > read() > Main().
+    #COMMENT: Backup at 60 second mark,
+    #   Then hand control back to backUp() > read() > main().
     
 def armBackupSystem():
     """Caculate the date of following Saturday."""
@@ -222,7 +225,7 @@ def armBackupSystem():
     week_num = date.isoweekday()
     days_till_saturday = None
 
-    #COMMENT: Caculate time delta of number of days until next Saturday.
+    #COMMENT: Caculate time delta of number of days until next Monday.
     if 6 - week_num < 0:
         #COMMENT: If week day is already Saturday or Sunday
         days_till_saturday = 7
@@ -238,28 +241,21 @@ def backUp(parsed_args):
     sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
     time.sleep(60)
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
-    time.sleep(5)
-
-    global logfile
-    logfile.close()
+    time.sleep(4)
     
-    global v_number
     today = datetime.datetime.now()
     new_folder = today.strftime("%m-%d-%Y") + f'_{v_number.group()[8:]}'
     #COMMENT: Backup folder name = todays date + game version number.
 
-    # os.chdir(parsed_args.game_folder)
     backup_location = os.path.join(parsed_args.backup_location, new_folder) #COMMENT: Build
-    os.mkdir(backup_location)                                     # backup location string
+    os.mkdir(backup_location)                                       # backup location path
 
+    os.chdir(parsed_args.game_folder)
     subprocess.call(f"cp -R world {os.path.join(backup_location, 'worldB')}", shell=True)
     subprocess.call(f"cp -R world_nether {os.path.join(backup_location, 'world_netherB')}", shell=True)
     subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
 
     logging.info(f'Worlds copyed to {backup_location}.')
-    
-    # sendToSpigotScreen('java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
-    os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 def reset_vars():
     global start_time
@@ -269,7 +265,8 @@ def reset_vars():
     global backUpDate
     global player_list
     global game_time
-    global v_number
+    #COMMENT: global v_number doesn't reset
+    #COMMENT: Running is true until program quits
 
     start_time = datetime.datetime.today()
     end_time = datetime.datetime.today()
@@ -278,7 +275,8 @@ def reset_vars():
     backUpDate = None
     player_list = []
     game_time = 0
-    v_number = 0
+    #COMMENT: v_number = 0
+    #COMMENT: logfile doesn't need to be reset.    
 
 if __name__ == '__main__':
     main(sys.argv[1:])
