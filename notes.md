@@ -4,6 +4,10 @@ python dirwatcher_clone.py [folder to watch] [word to search for] ~optional~ [.f
 # How to stop dirwatcher.py
 Control + C
 
+# How to start server_backup_skript
+python server_backup_skript.py [logg_file] [word_folder] [backup_location]
+python server_backup_skript.py ../spigot/logs/latest.log ~/Desktop ~/Desktop
+
 ###--------------------------------------------------------###
 
 
@@ -19,3 +23,7 @@ chmod command and permissions
 1. Signal_handler
 2. New starter script will simultaneously
    start a new Minecraft server and the backup script.
+
+
+Using tail -f in python:
+https://stackoverflow.com/questions/12523044/how-can-i-tail-a-log-file-in-python
