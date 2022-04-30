@@ -7,5 +7,3 @@ a backup will be scheduled for that following Saturday night. Thirty minutes bef
 Receive a warning followed by a ten minute interval countdown. When this countdown completes, the server will stop, 
 the files will be copied to the specified destination and the server will start backup.
 
-
-wallpaper.png

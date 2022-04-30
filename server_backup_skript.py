@@ -37,12 +37,12 @@ running = True
 
 # logg_level = logging.critical
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
-    format="[Backup Server Program] [%(levelname)s]: %(message)s")
+    format="[%(asctime)s]  %(message)s")
 
 def create_parser():
     """Creates parser var with data passed into terminal."""
     parser = argparse.ArgumentParser(description="Copies Minecraft world folder" + 
-        "every week, if sufficent game time has been loged.")
+        "every week, if sufficient game time has been loged.")
     parser.add_argument("game_folder", help="Minecraft root game folder")
     parser.add_argument("backup_location", help="Location of new zipped backup")
     return parser
@@ -105,7 +105,6 @@ def initiate():
         game_version = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\sStarting minecraft server version\s\d+.\d+.\d+", line)
         if game_version:
             num = re.search('version\s\d+.\d+.\d+', line)
-            [print('') for _ in range(2)] #COMMENT: Print a few extra spaces 
             print('Waiting on server on server...')
         
         #COMMENT: Return to main function once server is done loading.
@@ -133,7 +132,7 @@ def read(parsed_args):
         #COMMENT: Building model form information in log file
         if log_in:
             new_player(line)
-            print(player_list, end='\n \n')
+            # print(player_list, end='\n \n') #OUT FOR LOGING
 
             #COMMENT: When player list goes from 0 to 1, save current time.
             if len(player_list) == 1:
@@ -143,7 +142,7 @@ def read(parsed_args):
         #COMMENT: Building model form information in log file
         if log_out:
             player_leaving(line)
-            print(player_list, end='\n \n')
+            # print(player_list, end='\n \n') #OUT FOR LOGING
 
             #COMMENT: When player list goes from 1 to 0, save current time
                     # and calculate total player time for that session.
@@ -153,12 +152,13 @@ def read(parsed_args):
                 end_time = datetime.datetime.now()
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
-                logging.info(f"Total play time {round(game_time/60)} minutes.")
+                # logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
                 if backUpDate == None and game_time/60 >= 60:
                     backUpDate = armBackupSystem()
-                    logging.info('Backup armed!')
-                    logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technicaly it commences
+                    # logging.info('Backup armed!') #OUT FOR LOGING
+                    # logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technically it commences
                                                                             # on the next day at 00:00 but whatever.
+                                                                             #OUT FOR LOGING
         #COMMENT: On scheduled date at 11pm start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
            datetime.datetime.now().time().hour == 23:
@@ -168,36 +168,38 @@ def read(parsed_args):
 
 def new_player(file_line):
     """Finds and stores the name of new players entering the game."""
-    logging.debug("Identified a player entering the game")
+    # logging.debug("Identified a player entering the game") #OUT FOR LOGING
     in_p = re.search(":\s.+\[/", file_line) #COMMENT: Get the name of player joining.
     in_player = in_p.group() #COMMENT: Converting username match object to string.
     in_player = in_player.replace(":","").replace("[/","")[1:] #COMMENT: Removing extra characters and one space.
-    logging.debug(f"Player was: {in_player}")
+    # logging.debug(f"Player was: {in_player}") #OUT FOR LOGING
 
     #COMMENT: Player that is already in the game, can not enter in the game again.
     if in_player in player_list:
-        print("It looks like someone is trying to join the game, that is already in the game")
+        # print("It looks like someone is trying to join the game, that is already in the game") #OUT FOR LOGING
+        pass
     else:
         #COMMENT: Add player to player list.
         player_list.append(in_player)
-        logging.info(f"{in_player} log in recorded.")
+        # logging.info(f"{in_player} log in recorded.") #OUT FOR LOGING
 
 def player_leaving(file_line):
     """Finds and stores the name of players leaving the game."""
-    logging.debug("Identified a player leaving the game")
+    # logging.debug("Identified a player leaving the game") #OUT FOR LOGING
     o = re.search(":\s.+left", file_line) #COMMENT: Get the name of player leaving
     out_player = o.group().replace("left", "")[2:][:-1] #COMMENT: Converting player match--
-    logging.debug(f"Player was: {out_player}")#          --object as string & removing extra spaces
+    # logging.debug(f"Player was: {out_player}") #OUT FOR LOGING  # --object as string & removing extra spaces
     if out_player in player_list:
         #COMMENT: Remove player from player list.
         player_list.remove(out_player)
-        logging.info(f"{out_player} log out recorded.")
+        # logging.info(f"{out_player} log out recorded.") #OUT FOR LOGING
     else:
         #COMMENT: Players who are not in the game, can not leave the game.
-        logging.error("It looks like someone has left the game without logging in before hand.")
+        # logging.error("It looks like someone has left the game without logging in before hand.") #OUT FOR LOGING
+        pass
 
 def sendToSpigotScreen(command):
-    """Send command to Minecraft server, in it’s respective screen session."""
+    """Send command to Minecraft server, in its respective screen session."""
     os.system(f'Screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
 def countDown(parsed_args):
@@ -209,7 +211,8 @@ def countDown(parsed_args):
     #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
     if current_time.minute == 30 and thirty:
         thirty = False
-        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
+        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
+        'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
 
     #COMMENT: Continues to remind until the 60 second mark.
     if current_time.minute in forty:
