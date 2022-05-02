@@ -26,3 +26,8 @@ Make a sub-function to edit the server.properties file and change the message of
 Make a new branch
 **Java Update**
 Check for out of date java file in log stream and download a new version. Either by stoping the server then, or seeing a flag for the next backup.
+
+1.3.0
+Make a new branch
+**Live Weather**
+Link game weather to a weather api
