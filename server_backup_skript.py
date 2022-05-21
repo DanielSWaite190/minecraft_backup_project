@@ -105,7 +105,7 @@ def initiate():
         game_version = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\sStarting minecraft server version\s\d+.\d+.\d+", line)
         if game_version:
             num = re.search('version\s\d+.\d+.\d+', line)
-            print('Waiting on server on server...')
+            print('Waiting on server...')
         
         #COMMENT: Return to main function once server is done loading.
         done = re.search("! For help, type \"help\"", line)
@@ -200,7 +200,7 @@ def player_leaving(file_line):
 
 def sendToSpigotScreen(command):
     """Send command to Minecraft server, in its respective screen session."""
-    os.system(f'Screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
+    os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
 def countDown(parsed_args):
     """Wars players in game that server will be restarting soon."""
