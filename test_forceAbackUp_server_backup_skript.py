@@ -75,6 +75,8 @@ def main(args):
     global v_number
 
     while running:
+        print(os.getcwd())#test
+
         logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
         v_number = initiate()            #COMMENT: Finds game version number
         backUp(parsed_args)
@@ -82,7 +84,7 @@ def main(args):
         reset_vars()                            #COMMENT: Reset all global variables
         logfile.close()
         os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
-        os.chdir(os.path.dirname(__file__))     #COMMENT: Reset directory after new MC server 
+        # os.chdir(os.path.dirname(os.path.abspath(__file__)))     #COMMENT: Reset directory after new MC server 
 
         if not running:
             logfile.close()
@@ -245,7 +247,7 @@ def armBackupSystem():
 
 def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
-    # sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
+    sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
     # time.sleep(60)
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
     time.sleep(4)
