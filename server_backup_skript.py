@@ -81,7 +81,6 @@ def main(args):
         reset_vars()                            #COMMENT: Reset all global variables
         logfile.close()
         os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
-        os.chdir(os.path.dirname(__file__))     #COMMENT: Reset directory after new MC server 
 
         if not running:
             logfile.close()
@@ -230,7 +229,7 @@ def armBackupSystem():
     week_num = date.isoweekday()
     days_till_saturday = None
 
-    #COMMENT: Calculate time delta for number of days until next Monday.
+    # COMMENT: Calculate time delta for number of days until next Monday.
     if 6 - week_num < 0:
         #COMMENT: If week day is already Saturday or Sunday
         days_till_saturday = 7
