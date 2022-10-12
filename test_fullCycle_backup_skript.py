@@ -86,7 +86,7 @@ def main(args):
             logfile.close()
             break
         #COMMENT: Checking for exit signal before sleeping
-        time.sleep(5)
+        time.sleep(30)
 
 def initiate():
     """Pre while loop that confirms legitimate Minecraft log file."""
@@ -152,15 +152,15 @@ def read(parsed_args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
-                if backUpDate == None and game_time/60 >= 1:
+                if backUpDate == None and game_time/60 >= 60:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    logging.info(f'Backup will commence at {backUpDate} at 17:59.') #COMMENT: Technically it commences
+                    logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technically it commences
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
         #COMMENT: On scheduled date at 11pm start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
-           datetime.datetime.now().time().hour == 17:
+           datetime.datetime.now().time().hour == 23:
             rreturn = countDown(parsed_args)
             if rreturn == 0:
                 return
@@ -229,14 +229,13 @@ def armBackupSystem():
     week_num = date.isoweekday()
     days_till_saturday = None
 
-    #COMMENT: Calculate time delta for number of days until next Monday.
-    # if 6 - week_num < 0:
-    #     #COMMENT: If week day is already Saturday or Sunday
-    #     days_till_saturday = 7
-    # else:
-    #     #COMMENT: How many days from today is day number 6.
-    #     days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
-    days_till_saturday = 7 - week_num #COMMENT: Sunday is 6 in isoweekday
+    # COMMENT: Calculate time delta for number of days until next Monday.
+    if 6 - week_num < 0:
+        #COMMENT: If week day is already Saturday or Sunday
+        days_till_saturday = 7
+    else:
+        #COMMENT: How many days from today is day number 6.
+        days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
 
     tdelta = datetime.timedelta(days_till_saturday) 
     return date + tdelta

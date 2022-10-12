@@ -152,15 +152,16 @@ def read(parsed_args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
-                if backUpDate == None and game_time/60 >= 60:
+                if backUpDate == None and game_time/60 >= 2:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technically it commences
+                    # logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technically it commences
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
+                    
         #COMMENT: On scheduled date at 11pm start countdown.                                                                     
-        if datetime.date.today() == backUpDate and \
-           datetime.datetime.now().time().hour == 23:
+        if datetime.date.today() == backUpDate:
+        #    datetime.datetime.now().time().hour == 23:
             rreturn = countDown(parsed_args)
             if rreturn == 0:
                 return
@@ -202,24 +203,28 @@ def sendToSpigotScreen(command):
     os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
 def countDown(parsed_args):
-    """Wars players in game that server will be restarting soon."""
-    global thirty
-    global forty
-    current_time = datetime.datetime.now()
+    # """Wars players in game that server will be restarting soon."""
+    # global thirty
+    # global forty
+    # current_time = datetime.datetime.now()
 
-    #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
-    if current_time.minute == 30 and thirty:
-        thirty = False
-        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
-        'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
+    # #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
+    # if current_time.minute == 30 and thirty:
+    #     thirty = False
+    #     sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
+    #     'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
 
-    #COMMENT: Continues to remind until the 60 second mark.
-    if current_time.minute in forty:
-        forty.remove(current_time.minute)
-        sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes')
-    if current_time.minute == 59:
-        backUp(parsed_args)
-        return 0
+    # #COMMENT: Continues to remind until the 60 second mark.
+    # if current_time.minute in forty:
+    #     forty.remove(current_time.minute)
+    #     sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes')
+    # if current_time.minute == 59:
+    #     backUp(parsed_args)
+    #     return 0
+
+
+    backUp(parsed_args)
+    return 0
     #COMMENT: Backup at 60 second mark,
     #   Then hand control back to backUp() > read() > main().
     
@@ -238,7 +243,8 @@ def armBackupSystem():
         days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
 
     tdelta = datetime.timedelta(days_till_saturday) 
-    return date + tdelta
+    # return date + tdelta
+    return date
     #COMMENT: Today + days_till_satueday
 
 def backUp(parsed_args):

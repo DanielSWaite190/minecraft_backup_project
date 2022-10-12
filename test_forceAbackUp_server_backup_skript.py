@@ -90,7 +90,7 @@ def main(args):
             logfile.close()
             break
         #COMMENT: Checking for exit signal before sleeping
-        time.sleep(30)
+        time.sleep(5)
 
 def initiate():
     """Pre while loop that confirms legitimate Minecraft log file."""
