@@ -1,13 +1,9 @@
 """
-A script to automate the process of copying Minecraft worlds to a new and safe location in the case of corruption in the original folder.
-This program works by reading the Minecraft (Spigot) log file in real time. By keeping track of players entering and exiting the game,
-the program will calculate the total time the server is active (players are in the game). If this active time is above 30 minutes,
-a backup will be scheduled for that following Saturday night. Thirty minutes before the scheduled backup, all players on the server will 
-Receive a warning followed by a ten minute interval countdown. When this countdown completes, the server will stop, 
-the files will be copied to the specified destination and the server will start backup.
-(C) 2022 Daniel S. Waite
+CYCLE TEST
+CYCLE TEST
+CYCLE TEST
 """
-VERSION_NUMBER = '1.1.1'
+VERSION_NUMBER = '1.1.1 (cycle test)'
 
 import subprocess
 import argparse
@@ -155,7 +151,7 @@ def read(parsed_args):
                 if backUpDate == None and game_time/60 >= 2:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    # logging.info(f'Backup will commence at {backUpDate} at 23:59.') #COMMENT: Technically it commences
+                    logging.info(f'Backup will commence in 60 seconds.') #COMMENT: Technically it commences
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
                     
