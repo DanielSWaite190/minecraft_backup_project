@@ -151,13 +151,14 @@ def read(parsed_args):
                 if backUpDate == None and game_time/60 >= 2:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    logging.info(f'Backup will commence in 60 seconds.') #COMMENT: Technically it commences
+                    # logging.info(f'Backup will commence in 60 seconds.') #COMMENT: Technically it commences
+                    logging.info(f'Backup will commence tonigh at 23:00.') 
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
                     
         #COMMENT: On scheduled date at 11pm start countdown.                                                                     
-        if datetime.date.today() == backUpDate:
-        #    datetime.datetime.now().time().hour == 23:
+        if datetime.date.today() == backUpDate and \
+           datetime.datetime.now().time().hour == 23:
             rreturn = countDown(parsed_args)
             if rreturn == 0:
                 return
