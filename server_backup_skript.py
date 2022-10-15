@@ -72,7 +72,7 @@ def main(args):
     global logfile
     global v_number
 
-    v_number = initiate()            #COMMENT: Finds game version number
+    v_number = initiate(p_logg_file)            #COMMENT: Finds game version number
 
     while running:
         logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
@@ -88,8 +88,9 @@ def main(args):
         #COMMENT: Checking for exit signal before sleeping
         time.sleep(30)
 
-def initiate():
+def initiate(p_logg_file):
     """Pre while loop that confirms legitimate Minecraft log file."""
+    # global p_logg_file
     logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
 
     while running:
