@@ -22,6 +22,7 @@ I learn a better way
 """
 start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
+MIDNIGHT = datetime.time(23,59,55)
 thirty = True
 forty = [40,50,55,56,57,58]
 backUpDate = None
@@ -30,6 +31,8 @@ game_time = 0
 #v_number
 running = True
 
+parsed_args =  None
+p_logg_file = None
 
 # logg_level = logging.critical
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -64,19 +67,20 @@ def main(args):
     p_logg_file = os.path.abspath(os.path.join(parsed_args.game_folder, 'logs/latest.log'))
     # COMMENT: Pulling logs/latest out of game folder for easy indexing.
 
-    print()
     print(f"---   Minecraft Backup   ---")
     print(f'---   Version {VERSION_NUMBER}')
     global logfile
     global v_number
 
+    v_number = initiate()            #COMMENT: Finds game version number
+
     while running:
         logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
-        v_number = initiate()            #COMMENT: Finds game version number
         read(parsed_args)   #Comment: Main loop that writes to player list
-        reset_vars()                            #COMMENT: Reset all global variables
-        logfile.close()
-        os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+
+        # reset_vars()                            #COMMENT: Reset all global variables
+        # logfile.close()
+        # os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
         if not running:
             logfile.close()
@@ -86,6 +90,8 @@ def main(args):
 
 def initiate():
     """Pre while loop that confirms legitimate Minecraft log file."""
+    logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
+
     while running:
         # num = None
         line = '' #COMMENT: Clear variable for next line
@@ -105,6 +111,7 @@ def initiate():
         #COMMENT: Return to main function once server is done loading.
         done = re.search("! For help, type \"help\"", line)
         if done:
+            logfile.close()
             print("Server is all done.")
             print("Enjoy your game. Don't worry, we've got your back- up!", end='\n')
             sendToSpigotScreen('say Backup program initiated')
@@ -155,7 +162,11 @@ def read(parsed_args):
                     logging.info(f'Backup will commence tonigh at 23:00.') 
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
-                    
+        #COMMENT: Every night at 11:59
+        if backUpDate == None and datetime.datetime.now().time() == MIDNIGHT:
+            logchange()
+            return
+        
         #COMMENT: On scheduled date at 11pm start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
            datetime.datetime.now().time().hour == 23:
@@ -244,11 +255,19 @@ def armBackupSystem():
     return date
     #COMMENT: Today + days_till_satueday
 
+def logchange():
+    logging.debug('logchange')
+    sendToSpigotScreen('Reinitiating...')
+    logfile.close()
+    time.sleep(10)
+    sendToSpigotScreen('Reinitiating...')
+
 def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
     sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
     time.sleep(60)
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
+    logfile.close()
     time.sleep(4)
     
     today = datetime.datetime.now()
@@ -264,6 +283,7 @@ def backUp(parsed_args):
     subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
 
     logging.info(f'Worlds copied to {backup_location}.')
+    reset_vars()
 
 def reset_vars():
     """Resets all variables for next backup session."""
@@ -286,6 +306,8 @@ def reset_vars():
     game_time = 0
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
+    os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
