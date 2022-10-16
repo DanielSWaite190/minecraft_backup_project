@@ -160,7 +160,7 @@ def read(parsed_args):
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
                     # logging.info(f'Backup will commence in 60 seconds.') #COMMENT: Technically it commences
-                    logging.info(f'Backup will commence tonigh at 23:00.') 
+                    logging.info(f'Backup will commence tonigh at Midnight.') 
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
         #COMMENT: Every night at 11:59
@@ -267,10 +267,10 @@ def logchange():
 
 def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
-    sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
-    time.sleep(60)
-    sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
+    # sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
+    # time.sleep(60)
     logfile.close()
+    sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
     time.sleep(10)
     
     today = datetime.datetime.now()
