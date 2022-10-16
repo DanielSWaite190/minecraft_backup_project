@@ -164,7 +164,7 @@ def read(parsed_args):
                                                                             # on the next day at 00:00 but whatever.
                                                                              #OUT FOR LOGING
         #COMMENT: Every night at 11:59
-        if backUpDate == None and datetime.datetime.now().time() == MIDNIGHT:
+        if backUpDate == None and datetime.datetime.now().time() > MIDNIGHT:
             logchange()
             return
         
@@ -212,28 +212,30 @@ def sendToSpigotScreen(command):
     os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
 def countDown(parsed_args):
-    # """Wars players in game that server will be restarting soon."""
-    # global thirty
-    # global forty
-    # current_time = datetime.datetime.now()
+    """Wars players in game that server will be restarting soon."""
+    global thirty
+    global forty
+    current_time = datetime.datetime.now()
 
-    # #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
-    # if current_time.minute == 30 and thirty:
-    #     thirty = False
-    #     sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
-    #     'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
+    #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
+    if current_time.minute == 30 and thirty:
+        thirty = False
+        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
+        'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
 
-    # #COMMENT: Continues to remind until the 60 second mark.
-    # if current_time.minute in forty:
-    #     forty.remove(current_time.minute)
-    #     sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes')
-    # if current_time.minute == 59:
-    #     backUp(parsed_args)
-    #     return 0
+    #COMMENT: Continues to remind until the 60 second mark.
+    if current_time.minute in forty:
+        forty.remove(current_time.minute)
+        sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes')
+    if current_time > MIDNIGHT:
+        backUp(parsed_args)
+        return 0
 
 
-    backUp(parsed_args)
-    return 0
+    # backUp(parsed_args)
+    # return 0
+
+
     #COMMENT: Backup at 60 second mark,
     #   Then hand control back to backUp() > read() > main().
     
@@ -258,10 +260,10 @@ def armBackupSystem():
 
 def logchange():
     logging.debug('logchange')
-    sendToSpigotScreen('Reinitiating...')
+    sendToSpigotScreen('say Curent logfile')
     logfile.close()
     time.sleep(10)
-    sendToSpigotScreen('Reinitiating...')
+    sendToSpigotScreen('say New logfile')
 
 def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
@@ -269,7 +271,7 @@ def backUp(parsed_args):
     time.sleep(60)
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
     logfile.close()
-    time.sleep(4)
+    time.sleep(10)
     
     today = datetime.datetime.now()
     new_folder = today.strftime("%m-%d-%Y") + f'_{v_number.group()[8:]}'
