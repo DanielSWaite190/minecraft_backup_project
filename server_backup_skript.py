@@ -3,7 +3,7 @@ CYCLE TEST
 CYCLE TEST
 CYCLE TEST
 """
-VERSION_NUMBER = '1.1.1 (cycle test)'
+VERSION_NUMBER = '1.1.1'
 
 import subprocess
 import argparse
@@ -149,19 +149,17 @@ def read(parsed_args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
-                if backUpDate == None and game_time/60 >= 2:
+                if backUpDate == None and game_time/60 >= 60:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    # logging.info(f'Backup will commence in 60 seconds.') #COMMENT: Technically it commences
-                    logging.info(f'Backup will commence tonigh at Midnight.') 
-                                                                            # on the next day at 00:00 but whatever.
-                                                                             #OUT FOR LOGING
-        #COMMENT: Every night at 11:59
+                    logging.info(f'Backup will commence at {backUpDate} at 23:59.')
+                    
+        #COMMENT: Every night at 11:59:55
         if backUpDate == None and datetime.datetime.now().time() > MIDNIGHT:
             logchange()
             return
         
-        #COMMENT: On scheduled date at 11pm start countdown.                                                                     
+        #COMMENT: On scheduled date at 11:59:55 start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
            datetime.datetime.now().time().hour == 23:
             rreturn = countDown(parsed_args)
@@ -219,8 +217,7 @@ def armBackupSystem():
         days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
 
     tdelta = datetime.timedelta(days_till_saturday) 
-    # return date + tdelta
-    return date
+    return date + tdelta
     #COMMENT: Today + days_till_satueday
 
 def countDown(parsed_args):
@@ -246,10 +243,7 @@ def countDown(parsed_args):
         backUp(parsed_args)
         return 0
 
-    # backUp(parsed_args)
-    # return 0
-
-    #COMMENT: Backup at 60 second mark,
+    #COMMENT: Backup at 23:59:55 second mark,
     #   Then hand control back to backUp() > read() > main().
     
 def logchange():
@@ -261,8 +255,6 @@ def logchange():
 
 def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
-    # sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
-    # time.sleep(60)
     logfile.close()
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
     time.sleep(10)
