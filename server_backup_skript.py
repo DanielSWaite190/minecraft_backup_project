@@ -24,13 +24,12 @@ start_time = datetime.datetime.today()
 end_time = datetime.datetime.today()
 MIDNIGHT = datetime.time(23,59,55)
 thirty = True
-forty = [40,50,55,56,57,58]
+forty = [40,50,55,56,57,58,59]
 backUpDate = None
 player_list = []
 game_time = 0
 #v_number
 running = True
-
 parsed_args =  None
 p_logg_file = None
 
@@ -55,7 +54,7 @@ def signal_handler(sig_num, frame):
     print("Closed")
     print()
     
-
+    
 def main(args):
     """Main function holding the master while loop."""
     signal.signal(signal.SIGINT, signal_handler)
@@ -78,14 +77,9 @@ def main(args):
         logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
         read(parsed_args)   #Comment: Main loop that writes to player list
 
-        # reset_vars()                            #COMMENT: Reset all global variables
-        # logfile.close()
-        # os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
-
         if not running:
             logfile.close()
             break
-        #COMMENT: Checking for exit signal before sleeping
         time.sleep(30)
 
 def initiate(p_logg_file):
@@ -94,7 +88,6 @@ def initiate(p_logg_file):
     logfile=open(p_logg_file, 'r')                  #COMMENT: Open MC log file
 
     while running:
-        # num = None
         line = '' #COMMENT: Clear variable for next line
         #COMMENT: Reads the lates line from the file and saves it to var line.
         logline=logfile.readline()
@@ -211,34 +204,6 @@ def sendToSpigotScreen(command):
     """Send command to Minecraft server, in its respective screen session."""
     os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
 
-def countDown(parsed_args):
-    """Wars players in game that server will be restarting soon."""
-    global thirty
-    global forty
-    current_time = datetime.datetime.now()
-
-    #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
-    if current_time.minute == 30 and thirty:
-        thirty = False
-        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
-        'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
-
-    #COMMENT: Continues to remind until the 60 second mark.
-    if current_time.minute in forty:
-        forty.remove(current_time.minute)
-        sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes')
-    if current_time > MIDNIGHT:
-        backUp(parsed_args)
-        return 0
-
-
-    # backUp(parsed_args)
-    # return 0
-
-
-    #COMMENT: Backup at 60 second mark,
-    #   Then hand control back to backUp() > read() > main().
-    
 def armBackupSystem():
     """Calculate the date of following Saturday."""
     date = datetime.date.today()
@@ -258,6 +223,35 @@ def armBackupSystem():
     return date
     #COMMENT: Today + days_till_satueday
 
+def countDown(parsed_args):
+    """Wars players in game that server will be restarting soon."""
+    global thirty
+    global forty
+    current_time = datetime.datetime.now().time()
+
+    #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
+    if current_time.minute == 30 and thirty:
+        thirty = False
+        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
+        'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
+
+    #COMMENT: Continues to remind until the 60 second mark.
+    if current_time.minute in forty:
+        forty.remove(current_time.minute)
+        sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes.')
+    if current_time.minute == 59:
+        forty.remove(59)
+        sendToSpigotScreen(f'say Server will reboot in 55 seconds!')
+    if current_time > MIDNIGHT:
+        backUp(parsed_args)
+        return 0
+
+    # backUp(parsed_args)
+    # return 0
+
+    #COMMENT: Backup at 60 second mark,
+    #   Then hand control back to backUp() > read() > main().
+    
 def logchange():
     logging.debug('logchange')
     sendToSpigotScreen('say Curent logfile')
@@ -302,15 +296,15 @@ def reset_vars():
 
     start_time = datetime.datetime.today()
     end_time = datetime.datetime.today()
+    # MIDNIGHT = datetime.time(23,59,55)
     thirty = True
-    forty = [40,50,55,56,57,58]
+    forty = [40,50,55,56,57,58,59]
     backUpDate = None
     player_list = []
     game_time = 0
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
     os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
-
 
 if __name__ == '__main__':
     main(sys.argv[1:])
