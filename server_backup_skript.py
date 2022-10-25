@@ -100,7 +100,7 @@ def initiate(p_logg_file):
         game_version = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\sStarting minecraft server version\s\d+.\d+.\d+", line)
         if game_version:
             num = re.search('version\s\d+.\d+.\d+', line)
-            print('Waiting on server...')
+            print('Reading log file...')
         
         #COMMENT: Return to main function once server is done loading.
         done = re.search("! For help, type \"help\"", line)
@@ -149,7 +149,7 @@ def read(parsed_args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
-                if backUpDate == None and game_time/60 >= 60:
+                if backUpDate == None and game_time/60 >= 1:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
                     logging.info(f'Backup will commence at {backUpDate} at 23:59.')
@@ -162,9 +162,9 @@ def read(parsed_args):
         #COMMENT: On scheduled date at 11:59:55 start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
            datetime.datetime.now().time().hour == 23:
-            rreturn = countDown(parsed_args)
-            if rreturn == 0:
-                return
+                rreturn = countDown(parsed_args)
+                if rreturn == 0:
+                    return
 
 def new_player(file_line):
     """Finds and stores the name of new players entering the game."""
@@ -242,6 +242,8 @@ def countDown(parsed_args):
     if current_time > MIDNIGHT:
         backUp(parsed_args)
         return 0
+    backUp(parsed_args)
+    return 0
 
     #COMMENT: Backup at 23:59:55 second mark,
     #   Then hand control back to backUp() > read() > main().
