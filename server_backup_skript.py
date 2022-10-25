@@ -1,8 +1,3 @@
-"""
-CYCLE TEST
-CYCLE TEST
-CYCLE TEST
-"""
 VERSION_NUMBER = '1.1.1'
 
 import subprocess
