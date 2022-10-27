@@ -234,8 +234,6 @@ def countDown(parsed_args):
     if current_time > MIDNIGHT:
         backUp(parsed_args)
         return 0
-    backUp(parsed_args)
-    return 0
 
     #COMMENT: Backup at 23:59:55 second mark,
     #   Then hand control back to backUp() > read() > main().
