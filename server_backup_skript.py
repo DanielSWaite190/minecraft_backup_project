@@ -231,9 +231,6 @@ def countDown(parsed_args):
     if current_time.minute in forty:
         forty.remove(current_time.minute)
         sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes.')
-    if current_time.minute == 59:
-        forty.remove(59)
-        sendToSpigotScreen(f'say Server will reboot in 55 seconds!')
     if current_time > MIDNIGHT:
         backUp(parsed_args)
         return 0
