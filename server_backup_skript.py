@@ -1,4 +1,4 @@
-VERSION_NUMBER = '1.1.1 dev2'
+VERSION_NUMBER = '1.1.1 (dev)'
 
 import subprocess
 import argparse
