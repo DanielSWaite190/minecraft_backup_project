@@ -1,4 +1,4 @@
-VERSION_NUMBER = '1.1.1'
+VERSION_NUMBER = '1.1.1 dev2'
 
 import subprocess
 import argparse
@@ -149,10 +149,6 @@ def read(parsed_args):
                     logging.info('Backup armed!') #OUT FOR LOGING
                     logging.info(f'Backup will commence at {backUpDate} at 23:59.')
                     
-        #COMMENT: Every night at 11:59:55
-        if backUpDate == None and datetime.datetime.now().time() > MIDNIGHT:
-            logchange()
-            return
         
         #COMMENT: On scheduled date at 11:59:55 start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
@@ -160,7 +156,14 @@ def read(parsed_args):
                 rreturn = countDown(parsed_args)
                 if rreturn == 0:
                     return
-
+                    
+        #COMMENT: Every night at 11:59:55
+        if datetime.datetime.now().time() > MIDNIGHT:
+            logchange()
+            sendToSpigotScreen('log change')
+            return
+                                    #"""Remove 'backUpDate == None' and swap the two conditonals"""
+                                
 def new_player(file_line):
     """Finds and stores the name of new players entering the game."""
     logging.debug("Identified a player entering the game") #OUT FOR LOGING
@@ -288,6 +291,7 @@ def reset_vars():
     game_time = 0
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
+    # os.chdir(parsed_args.game_folder)  <--  Not tested, but probably a good idea.
     os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
