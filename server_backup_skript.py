@@ -160,10 +160,8 @@ def read(parsed_args):
         #COMMENT: Every night at 11:59:55
         if datetime.datetime.now().time() > MIDNIGHT:
             logchange()
-            sendToSpigotScreen('log change')
             return
-                                    #"""Remove 'backUpDate == None' and swap the two conditonals"""
-                                
+                                        
 def new_player(file_line):
     """Finds and stores the name of new players entering the game."""
     logging.debug("Identified a player entering the game") #OUT FOR LOGING
@@ -198,7 +196,8 @@ def player_leaving(file_line):
 
 def sendToSpigotScreen(command):
     """Send command to Minecraft server, in its respective screen session."""
-    os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
+    screen = os.path.basename(os.path.abspath(parsed_args.game_folder))
+    os.system(f'screen -S {screen} -p 0 -X stuff "`printf "{command}\r"`"')
 
 def armBackupSystem():
     """Calculate the date of following Saturday."""
@@ -292,7 +291,8 @@ def reset_vars():
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
     # os.chdir(parsed_args.game_folder)  <--  Not tested, but probably a good idea.
-    os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+    screen = os.path.basename(os.path.abspath(parsed_args.game_folder))
+    os.system(f'screen -d -m -S {screen} java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
