@@ -60,7 +60,8 @@ def main(args):
         sys.exit(1)
     parsed_args = parser.parse_args(args)
     p_logg_file = os.path.abspath(os.path.join(parsed_args.game_folder, 'logs/latest.log'))
-    screen_name = f'{os.path.basename(os.path.abspath(parsed_args.game_folder))}_backup'
+    global screen_name
+    screen_name = f'{os.path.basename(os.path.abspath(parsed_args.game_folder))}'
     # COMMENT: Pulling logs/latest out of game folder for easy indexing.
 
     print(f"---   Minecraft Backup   ---")
