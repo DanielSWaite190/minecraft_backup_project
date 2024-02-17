@@ -27,6 +27,7 @@ game_time = 0
 running = True
 parsed_args =  None
 p_logg_file = None
+screen_name = None
 
 # logg_level = logging.critical
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -59,10 +60,12 @@ def main(args):
         sys.exit(1)
     parsed_args = parser.parse_args(args)
     p_logg_file = os.path.abspath(os.path.join(parsed_args.game_folder, 'logs/latest.log'))
+    screen_name = os.path.basename(os.path.abspath(parsed_args.game_folder))
     # COMMENT: Pulling logs/latest out of game folder for easy indexing.
 
     print(f"---   Minecraft Backup   ---")
     print(f'---   Version {VERSION_NUMBER}')
+    
     global logfile
     global v_number
 
@@ -196,8 +199,7 @@ def player_leaving(file_line):
 
 def sendToSpigotScreen(command):
     """Send command to Minecraft server, in its respective screen session."""
-    screen = os.path.basename(os.path.abspath(parsed_args.game_folder))
-    os.system(f'screen -S {screen} -p 0 -X stuff "`printf "{command}\r"`"')
+    os.system(f'screen -S {screen_name} -p 0 -X stuff "`printf "{command}\r"`"')
 
 def armBackupSystem():
     """Calculate the date of following Saturday."""
@@ -291,8 +293,7 @@ def reset_vars():
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
     # os.chdir(parsed_args.game_folder)  <--  Not tested, but probably a good idea.
-    screen = os.path.basename(os.path.abspath(parsed_args.game_folder))
-    os.system(f'screen -d -m -S {screen} java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+    os.system(f'screen -d -m -S {screen_name} java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
