@@ -1,9 +1,4 @@
-"""
-CYCLE TEST
-CYCLE TEST
-CYCLE TEST
-"""
-VERSION_NUMBER = '1.1.1 (cycle test)'
+VERSION_NUMBER = '1.1.1 (dev)'
 
 import subprocess
 import argparse
@@ -32,6 +27,7 @@ game_time = 0
 running = True
 parsed_args =  None
 p_logg_file = None
+screen_name = None
 
 # logg_level = logging.critical
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -64,10 +60,13 @@ def main(args):
         sys.exit(1)
     parsed_args = parser.parse_args(args)
     p_logg_file = os.path.abspath(os.path.join(parsed_args.game_folder, 'logs/latest.log'))
+    global screen_name #probably a better way to set this
+    screen_name = f'{os.path.basename(os.path.abspath(parsed_args.game_folder))}'
     # COMMENT: Pulling logs/latest out of game folder for easy indexing.
 
     print(f"---   Minecraft Backup   ---")
     print(f'---   Version {VERSION_NUMBER}')
+    
     global logfile
     global v_number
 
@@ -100,7 +99,7 @@ def initiate(p_logg_file):
         game_version = re.search("\[\d+:\d+:\d+\]\s\[Server thread/INFO]:\sStarting minecraft server version\s\d+.\d+.\d+", line)
         if game_version:
             num = re.search('version\s\d+.\d+.\d+', line)
-            print('Waiting on server...')
+            print('Reading log file...')
         
         #COMMENT: Return to main function once server is done loading.
         done = re.search("! For help, type \"help\"", line)
@@ -149,25 +148,24 @@ def read(parsed_args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
-                if backUpDate == None and game_time/60 >= 2:
+                if backUpDate == None and game_time/60 >= 60:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    # logging.info(f'Backup will commence in 60 seconds.') #COMMENT: Technically it commences
-                    logging.info(f'Backup will commence tonigh at Midnight.') 
-                                                                            # on the next day at 00:00 but whatever.
-                                                                             #OUT FOR LOGING
-        #COMMENT: Every night at 11:59
-        if backUpDate == None and datetime.datetime.now().time() > MIDNIGHT:
-            logchange()
-            return
+                    logging.info(f'Backup will commence at {backUpDate} at 23:59.')
+                    
         
-        #COMMENT: On scheduled date at 11pm start countdown.                                                                     
+        #COMMENT: On scheduled date at 11:59:55 start countdown.                                                                     
         if datetime.date.today() == backUpDate and \
            datetime.datetime.now().time().hour == 23:
-            rreturn = countDown(parsed_args)
-            if rreturn == 0:
-                return
-
+                rreturn = countDown(parsed_args)
+                if rreturn == 0:
+                    return
+                    
+        #COMMENT: Every night at 11:59:55
+        if datetime.datetime.now().time() > MIDNIGHT:
+            logchange()
+            return
+                                        
 def new_player(file_line):
     """Finds and stores the name of new players entering the game."""
     logging.debug("Identified a player entering the game") #OUT FOR LOGING
@@ -202,7 +200,7 @@ def player_leaving(file_line):
 
 def sendToSpigotScreen(command):
     """Send command to Minecraft server, in its respective screen session."""
-    os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
+    os.system(f'screen -S {screen_name} -p 0 -X stuff "`printf "{command}\r"`"')
 
 def armBackupSystem():
     """Calculate the date of following Saturday."""
@@ -219,8 +217,7 @@ def armBackupSystem():
         days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
 
     tdelta = datetime.timedelta(days_till_saturday) 
-    # return date + tdelta
-    return date
+    return date + tdelta
     #COMMENT: Today + days_till_satueday
 
 def countDown(parsed_args):
@@ -239,17 +236,11 @@ def countDown(parsed_args):
     if current_time.minute in forty:
         forty.remove(current_time.minute)
         sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes.')
-    if current_time.minute == 59:
-        forty.remove(59)
-        sendToSpigotScreen(f'say Server will reboot in 55 seconds!')
     if current_time > MIDNIGHT:
         backUp(parsed_args)
         return 0
 
-    # backUp(parsed_args)
-    # return 0
-
-    #COMMENT: Backup at 60 second mark,
+    #COMMENT: Backup at 23:59:55 second mark,
     #   Then hand control back to backUp() > read() > main().
     
 def logchange():
@@ -261,8 +252,6 @@ def logchange():
 
 def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
-    # sendToSpigotScreen(f'say Server will reboot in 60 seconds!')
-    # time.sleep(60)
     logfile.close()
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
     time.sleep(10)
@@ -275,9 +264,9 @@ def backUp(parsed_args):
     os.mkdir(backup_location)                                       # backup location path
 
     os.chdir(parsed_args.game_folder)
-    subprocess.call(f"cp -R world {os.path.join(backup_location, 'worldB')}", shell=True)
-    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, 'world_netherB')}", shell=True)
-    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
+    subprocess.call(f"cp -R world {os.path.join(backup_location, {parsed_args.game_folder})}", shell=True)
+    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, {parsed_args.game_folder, '_nether'})}", shell=True)
+    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, {parsed_args.game_folder,'the_end'})}", shell=True)
 
     logging.info(f'Worlds copied to {backup_location}.')
     reset_vars()
@@ -304,7 +293,8 @@ def reset_vars():
     game_time = 0
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
-    os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+    # os.chdir(parsed_args.game_folder)  <--  Not tested, but probably a good idea.
+    os.system(f'screen -d -m -S {screen_name} java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
