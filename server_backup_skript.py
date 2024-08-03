@@ -1,4 +1,4 @@
-VERSION_NUMBER = '1.1.1 (dev)'
+VERSION_NUMBER = '1.1.2 (Cycle Test)'
 
 import subprocess
 import argparse
@@ -148,19 +148,13 @@ def read(parsed_args):
                 game_time_delta = end_time - start_time #COMMENT: Total game time
                 game_time += round(game_time_delta.seconds) #COMMENT: Turns game time delta into int
                 logging.info(f"Total play time {round(game_time/60)} minutes.") #OUT FOR LOGING 
-                if backUpDate == None and game_time/60 >= 60:
+                if backUpDate == None and game_time/60 >= 0:
                     backUpDate = armBackupSystem()
                     logging.info('Backup armed!') #OUT FOR LOGING
-                    logging.info(f'Backup will commence at {backUpDate} at 23:59.')
+                    logging.info(f'Backup will commence at {backUpDate} (soon...)')
                     
-        
-        #COMMENT: On scheduled date at 11:59:55 start countdown.                                                                     
-        if datetime.date.today() == backUpDate and \
-           datetime.datetime.now().time().hour == 23:
-                rreturn = countDown(parsed_args)
-                if rreturn == 0:
-                    return
-                    
+        countDown(parsed_args)
+
         #COMMENT: Every night at 11:59:55
         if datetime.datetime.now().time() > MIDNIGHT:
             logchange()
@@ -203,42 +197,12 @@ def sendToSpigotScreen(command):
     os.system(f'screen -S {screen_name} -p 0 -X stuff "`printf "{command}\r"`"')
 
 def armBackupSystem():
-    """Calculate the date of following Saturday."""
     date = datetime.date.today()
-    week_num = date.isoweekday()
-    days_till_saturday = None
-
-    # COMMENT: Calculate time delta for number of days until next Monday.
-    if 6 - week_num < 0:
-        #COMMENT: If week day is already Saturday or Sunday
-        days_till_saturday = 7
-    else:
-        #COMMENT: How many days from today is day number 6.
-        days_till_saturday = 6 - week_num #COMMENT: Saturday is 6 in isoweekday
-
-    tdelta = datetime.timedelta(days_till_saturday) 
-    return date + tdelta
-    #COMMENT: Today + days_till_satueday
+    return date
 
 def countDown(parsed_args):
-    """Wars players in game that server will be restarting soon."""
-    global thirty
-    global forty
-    current_time = datetime.datetime.now().time()
-
-    #COMMENT: Print initial reboot warning. Only at the 30 minute mark.
-    if current_time.minute == 30 and thirty:
-        thirty = False
-        sendToSpigotScreen('say Server will undergo regularly scheduled maintenance in 30 minutes. '+
-        'It will only be down for a few seconds. You can keep playing normally, we will provide a countdown.')
-
-    #COMMENT: Continues to remind until the 60 second mark.
-    if current_time.minute in forty:
-        forty.remove(current_time.minute)
-        sendToSpigotScreen(f'say Server will reboot in {60 - current_time.minute} minutes.')
-    if current_time > MIDNIGHT:
-        backUp(parsed_args)
-        return 0
+    backUp(parsed_args)
+    return 0
 
     #COMMENT: Backup at 23:59:55 second mark,
     #   Then hand control back to backUp() > read() > main().
@@ -254,7 +218,6 @@ def backUp(parsed_args):
     """Copies Minecraft world folders to designated destination."""
     logfile.close()
     sendToSpigotScreen('stop') #COMMENT: Stoping the Minecraft server with this command.
-    time.sleep(10)
     
     today = datetime.datetime.now()
     new_folder = today.strftime("%m-%d-%Y") + f'_{v_number.group()[8:]}'
@@ -264,9 +227,10 @@ def backUp(parsed_args):
     os.mkdir(backup_location)                                       # backup location path
 
     os.chdir(parsed_args.game_folder)
-    subprocess.call(f"cp -R world {os.path.join(backup_location, {parsed_args.game_folder})}", shell=True)
-    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, {parsed_args.game_folder, '_nether'})}", shell=True)
-    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, {parsed_args.game_folder,'the_end'})}", shell=True)
+
+    subprocess.call(f"cp -R world {os.path.join(backup_location, parsed_args.game_folder)}", shell=True)
+    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, parsed_args.game_folder + '_nether')}", shell=True)
+    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, parsed_args.game_folder + 'the_end')}", shell=True)
 
     logging.info(f'Worlds copied to {backup_location}.')
     reset_vars()
