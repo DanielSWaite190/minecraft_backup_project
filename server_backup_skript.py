@@ -264,9 +264,9 @@ def backUp(parsed_args):
     os.mkdir(backup_location)                                       # backup location path
 
     os.chdir(parsed_args.game_folder)
-    subprocess.call(f"cp -R world {os.path.join(backup_location, 'worldB')}", shell=True)
-    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, 'world_netherB')}", shell=True)
-    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
+    subprocess.call(f"cp -R world {os.path.join(backup_location, {parsed_args.game_folder})}", shell=True)
+    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, {parsed_args.game_folder, '_nether'})}", shell=True)
+    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, {parsed_args.game_folder,'the_end'})}", shell=True)
 
     logging.info(f'Worlds copied to {backup_location}.')
     reset_vars()

@@ -5,8 +5,8 @@ python dirwatcher_clone.py [folder to watch] [word to search for] ~optional~ [.f
 Control + C
 
 # How to start server_backup_skript
-python server_backup_skript.py [logg_file] [word_folder] [backup_location]
-python server_backup_skript.py ../spigot/logs/latest.log ~/Desktop ~/Desktop
+python server_backup_skript.py [game_folder] [backup_location]
+python server_backup_skript.py ./test_game ~/Desktop
 
 ###--------------------------------------------------------###
 
