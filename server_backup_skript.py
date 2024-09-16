@@ -1,4 +1,4 @@
-VERSION_NUMBER = '1.1.1'
+VERSION_NUMBER = '1.2.0'
 
 import subprocess
 import argparse
@@ -27,6 +27,7 @@ game_time = 0
 running = True
 parsed_args =  None
 p_logg_file = None
+game_name = None
 
 # logg_level = logging.critical
 logging.basicConfig(level=logging.DEBUG, #filename="backup.log",
@@ -59,10 +60,13 @@ def main(args):
         sys.exit(1)
     parsed_args = parser.parse_args(args)
     p_logg_file = os.path.abspath(os.path.join(parsed_args.game_folder, 'logs/latest.log'))
+    global game_name #probably a better way to set this
+    game_name = f'{os.path.basename(os.path.abspath(parsed_args.game_folder))}'
     # COMMENT: Pulling logs/latest out of game folder for easy indexing.
 
     print(f"---   Minecraft Backup   ---")
     print(f'---   Version {VERSION_NUMBER}')
+    
     global logfile
     global v_number
 
@@ -160,10 +164,8 @@ def read(parsed_args):
         #COMMENT: Every night at 11:59:55
         if datetime.datetime.now().time() > MIDNIGHT:
             logchange()
-            sendToSpigotScreen('log change')
             return
-                                    #"""Remove 'backUpDate == None' and swap the two conditonals"""
-                                
+                                        
 def new_player(file_line):
     """Finds and stores the name of new players entering the game."""
     logging.debug("Identified a player entering the game") #OUT FOR LOGING
@@ -198,7 +200,7 @@ def player_leaving(file_line):
 
 def sendToSpigotScreen(command):
     """Send command to Minecraft server, in its respective screen session."""
-    os.system(f'screen -S server -p 0 -X stuff "`printf "{command}\r"`"')
+    os.system(f'screen -S {game_name} -p 0 -X stuff "`printf "{command}\r"`"')
 
 def armBackupSystem():
     """Calculate the date of following Saturday."""
@@ -262,9 +264,9 @@ def backUp(parsed_args):
     os.mkdir(backup_location)                                       # backup location path
 
     os.chdir(parsed_args.game_folder)
-    subprocess.call(f"cp -R world {os.path.join(backup_location, 'worldB')}", shell=True)
-    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, 'world_netherB')}", shell=True)
-    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, 'world_the_endB')}", shell=True)
+    subprocess.call(f"cp -R world {os.path.join(backup_location, game_name)}", shell=True)
+    subprocess.call(f"cp -R world_nether {os.path.join(backup_location, f'{game_name}_nether')}", shell=True)
+    subprocess.call(f"cp -R world_the_end {os.path.join(backup_location, f'{game_name}_the_end')}", shell=True)
 
     logging.info(f'Worlds copied to {backup_location}.')
     reset_vars()
@@ -292,7 +294,7 @@ def reset_vars():
     #COMMENT: v_number = 0
     #COMMENT: logfile doesn't need to be reset.    
     # os.chdir(parsed_args.game_folder)  <--  Not tested, but probably a good idea.
-    os.system('screen -d -m -S server java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
+    os.system(f'screen -d -m -S {game_name} java -Xms1G -Xmx1G -XX:+UseG1GC -jar spigot.jar nogui')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
